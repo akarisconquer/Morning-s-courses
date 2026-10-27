@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Choose a web development course and start learning HTML, CSS, or JavaScript.">
+  <title>Morning's Courses - Choose a Course</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body class="dark-theme">
+  <header class="catalog-header">
+    <a class="brand" href="index.html" aria-label="Morning's Courses home">
+      <span class="brand-mark">M</span> Morning's Courses
+    </a>
+    <div class="catalog-header-actions">
+      <span class="catalog-header-note">Learn to build for the web</span>
+      <button class="avatar" id="profileButton" type="button" aria-label="Sign up or log in" aria-haspopup="dialog" aria-controls="authDialog">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <circle cx="12" cy="8" r="3.5"></circle>
+          <path d="M5 20c0-4.1 3.1-7 7-7s7 2.9 7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="catalog-main">
+    <section class="catalog-intro" aria-labelledby="catalogTitle">
+      <p class="catalog-eyebrow">Your next skill starts here</p>
+      <h1 id="catalogTitle">What do you want to learn?</h1>
+      <p class="catalog-description">Choose a course to start building your web development skills.</p>
+    </section>
+
+    <section class="course-grid" aria-label="Available courses">
+      <a class="course-card course-card-available" href="html-course.html">
+        <span class="course-card-icon" aria-hidden="true">&lt;/&gt;</span>
+        <span class="course-card-content">
+          <span class="course-card-label">Start learning</span>
+          <span class="course-card-title">HTML</span>
+          <span class="course-card-description">Build the structure and meaning of web pages.</span>
+        </span>
+        <span class="course-card-link" aria-hidden="true">Explore course <span>→</span></span>
+      </a>
+
+      <div class="course-card course-card-upcoming" aria-disabled="true">
+        <span class="course-card-icon" aria-hidden="true">#</span>
+        <span class="course-card-content">
+          <span class="course-card-label">Coming soon</span>
+          <span class="course-card-title">CSS</span>
+          <span class="course-card-description">Learn how to style and lay out beautiful web pages.</span>
+        </span>
+        <span class="course-card-status">Not available yet</span>
+      </div>
+
+      <div class="course-card course-card-upcoming" aria-disabled="true">
+        <span class="course-card-icon" aria-hidden="true">{ }</span>
+        <span class="course-card-content">
+          <span class="course-card-label">Coming soon</span>
+          <span class="course-card-title">JavaScript</span>
+          <span class="course-card-description">Make web pages interactive with programming.</span>
+        </span>
+        <span class="course-card-status">Not available yet</span>
+      </div>
+    </section>
+
+    <footer class="catalog-footer">
+      <p>Pick a topic and learn at your own pace.</p>
+    </footer>
+  </main>
+  <script src="auth.js?v=5"></script>
+</body>
+</html>
