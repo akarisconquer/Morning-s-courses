@@ -2,7 +2,7 @@
 
 A responsive, framework-free HTML course with 20 lessons and five real projects. The course is organized into JavaScript data structures in `app.js`. Lesson progress, practice drafts, passed code checks, and project drafts are saved in browser localStorage. Each project includes a blank editor and a sandboxed HTML preview.
 
-The guest profile opens a sign-up/login preview. Account creation and Google sign-in are not connected to an authentication service.
+Authentication uses Firebase Authentication for email/password, Google, Apple, and Microsoft sign-in. The public Firebase web-app configuration is kept in `firebase-config.js`; OAuth client secrets must only be entered in Firebase and provider dashboards, never in the website code.
 
 ## Run locally
 
@@ -13,6 +13,22 @@ python -m http.server 4173
 ```
 
 Then open `http://localhost:4173`.
+
+## Configure authentication
+
+The sign-in UI is wired to Firebase Authentication, but real accounts work only after you connect a Firebase project and enable the providers:
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/) and register a **Web app**.
+2. Copy the web app's `apiKey`, `authDomain`, `projectId`, and `appId` into `firebase-config.js`. This browser configuration is public by design; do not put service-account keys, OAuth client secrets, or private keys in this file.
+3. In **Authentication → Sign-in method**, enable **Email/Password**, **Google**, **Apple**, and **Microsoft**.
+4. In **Authentication → Settings → Authorized domains**, add `akarisconquer.github.io`, `localhost`, and `127.0.0.1` (and any custom domain you use).
+5. Configure the provider credentials in Firebase:
+   - **Google:** enable the provider in Firebase and use its configured OAuth client.
+   - **Apple:** configure Sign in with Apple in the Apple Developer portal, then enter the Service ID, Team ID, key ID, and private key in Firebase. Apple requires an Apple Developer Program membership. Register Firebase's OAuth handler URL shown in Firebase as Apple's Return URL.
+   - **Microsoft:** register an app in Microsoft Entra ID, then enter its client ID and client secret in Firebase. Add the Firebase OAuth handler URL shown in Firebase as the redirect URI in Microsoft Entra.
+6. Publish through GitHub Pages. Test locally using `http://localhost:4173` rather than opening the HTML files as `file://`; OAuth requires an authorized web origin.
+
+Firebase persists the sign-in session in the browser. Course progress remains in localStorage and is not yet synced between devices.
 
 ## Publish with GitHub Pages
 
@@ -48,4 +64,5 @@ The workflow deliberately copies only the site files to Pages, not workspace con
 - `index.html` - semantic application shell
 - `styles.css` - responsive course interface and themes
 - `app.js` - course data, navigation, and progress tracking
-- `auth.js` - guest profile sign-up/login preview
+- `auth.js` - Firebase Authentication UI and provider flows
+- `firebase-config.js` - public Firebase web app configuration
