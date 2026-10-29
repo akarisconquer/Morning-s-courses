@@ -1,18 +1,7 @@
-import {
-  AuthError,
-  MissingIdentityError,
-  acceptInvite,
-  getSettings,
-  getUser,
-  handleAuthCallback,
-  login,
-  logout,
-  oauthLogin,
-  onAuthChange,
-  requestPasswordRecovery,
-  signup,
-  updateUser
-} from "https://esm.sh/@netlify/identity@2.0.0";
+// Loaded lazily so the profile dialog still works if the auth library fails to load.
+let AuthError, MissingIdentityError, acceptInvite, getSettings, getUser, handleAuthCallback,
+  login, logout, oauthLogin, onAuthChange, requestPasswordRecovery, signup, updateUser;
+let identityReady = false;
 
 const profileButton = document.querySelector("#profileButton");
 const guestAvatar = profileButton.innerHTML;
@@ -187,10 +176,10 @@ function openDialog(mode) {
 }
 
 function errorMessage(error) {
-  if (error instanceof MissingIdentityError) {
+  if (!identityReady || (MissingIdentityError && error instanceof MissingIdentityError)) {
     return "Accounts aren't available right now. Please try again later.";
   }
-  if (error instanceof AuthError) {
+  if (AuthError && error instanceof AuthError) {
     if (/not confirmed/i.test(error.message)) return "Please confirm your email first. Check your inbox for the link we sent.";
     switch (error.status) {
       case 400:
@@ -303,6 +292,7 @@ authForm.addEventListener("submit", async event => {
 
   submitButton.disabled = true;
   try {
+    if (!identityReady) throw new Error("Identity unavailable");
     await submitAuth();
   } catch (error) {
     notice.textContent = errorMessage(error);
@@ -314,13 +304,23 @@ authDialog.addEventListener("click", event => {
   if (event.target === authDialog) authDialog.close();
 });
 
-onAuthChange((event, user) => {
-  currentUser = user;
-  renderAvatar();
-  if (event === "recovery") openDialog("reset");
-});
-
 async function initAuth() {
+  try {
+    ({
+      AuthError, MissingIdentityError, acceptInvite, getSettings, getUser, handleAuthCallback,
+      login, logout, oauthLogin, onAuthChange, requestPasswordRecovery, signup, updateUser
+    } = await import("https://esm.sh/@netlify/identity@2.0.0"));
+    identityReady = true;
+  } catch {
+    return;
+  }
+
+  onAuthChange((event, user) => {
+    currentUser = user;
+    renderAvatar();
+    if (event === "recovery") openDialog("reset");
+  });
+
   try {
     settings = await getSettings();
   } catch {
