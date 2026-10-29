@@ -2,7 +2,7 @@
 
 A responsive, framework-free HTML course with 20 lessons and five real projects. The course is organized into JavaScript data structures in `app.js`. Lesson progress, practice drafts, passed code checks, and project drafts are saved in browser localStorage. Each project includes a blank editor and a sandboxed HTML preview.
 
-The guest profile opens a sign-up/login preview. Account creation and Google sign-in are not connected to an authentication service.
+Accounts are powered by Netlify Identity. The profile button opens a dialog for signing up, logging in, resetting a forgotten password, and logging out. Google and GitHub sign-in buttons appear automatically once those providers are enabled under **Project configuration > Identity > External providers** in the Netlify dashboard. Accounts only work on the Netlify deployment (or locally via `netlify dev`); the GitHub Pages copy has no Identity service.
 
 ## Run locally
 
@@ -12,7 +12,7 @@ From the workspace root:
 python -m http.server 4173
 ```
 
-Then open `http://localhost:4173`.
+Then open `http://localhost:4173`. To test sign-up and login locally, run `netlify dev` instead so the Identity endpoint is available.
 
 ## Publish with GitHub Pages
 
@@ -48,4 +48,4 @@ The workflow deliberately copies only the site files to Pages, not workspace con
 - `index.html` - semantic application shell
 - `styles.css` - responsive course interface and themes
 - `app.js` - course data, navigation, and progress tracking
-- `auth.js` - guest profile sign-up/login preview
+- `auth.js` - sign-up, login, password reset, and account menu (Netlify Identity)
