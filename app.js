@@ -245,19 +245,75 @@ const completeButton = document.querySelector("#completeButton");
 const previousButton = document.querySelector("#previousButton");
 const courseProgress = document.querySelector("#courseProgress");
 const coursePercent = document.querySelector("#coursePercent");
+const unlockCelebration = document.querySelector("#unlockCelebration");
+const unlockMessage = unlockCelebration.querySelector(".unlock-message");
+const unlockParticles = unlockCelebration.querySelector(".unlock-particles");
+let unlockAnimationRunning = false;
+const lockedIcon = '<svg class="nav-lock-icon" aria-hidden="true" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>';
+
+function isUnlocked(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= lessonItems.length) return false;
+  for (let previousIndex = 0; previousIndex < index; previousIndex += 1) {
+    if (!completed.has(previousIndex)) return false;
+  }
+  return true;
+}
+
+if (!isUnlocked(activeIndex)) {
+  const firstIncompleteIndex = lessonItems.findIndex((_, index) => !completed.has(index));
+  activeIndex = firstIncompleteIndex === -1 ? 0 : firstIncompleteIndex;
+  localStorage.setItem("markup-html-active", String(activeIndex));
+}
 
 function renderNav() {
   courseNav.innerHTML = modules.map((module, moduleIndex) => {
     const items = [];
     module.lessons.forEach((lesson, lessonIndex) => {
       const index = lessonItems.findIndex(item => item.kind === "lesson" && item.moduleIndex === moduleIndex && item.lessonIndex === lessonIndex);
-      items.push(`<button class="nav-item ${activeIndex === index ? "active" : ""} ${completed.has(index) ? "completed" : ""}" data-index="${index}"><span class="status-dot">${completed.has(index) ? "✓" : lessonIndex + 1}</span><span>${lesson.title}</span></button>`);
+      const locked = !isUnlocked(index);
+      const status = locked ? lockedIcon : completed.has(index) ? "✓" : lessonIndex + 1;
+      const lockLabel = locked ? ' aria-label="Locked. Complete previous lessons to unlock."' : "";
+      const title = locked ? ' title="Complete previous lessons to unlock"' : "";
+      items.push(`<button class="nav-item ${activeIndex === index ? "active" : ""} ${completed.has(index) ? "completed" : ""} ${locked ? "locked" : ""}" data-index="${index}"${locked ? " disabled" : ""}${lockLabel}${title}><span class="status-dot">${status}</span><span>${lesson.title}</span></button>`);
     });
     const projectIndex = lessonItems.findIndex(item => item.kind === "project" && item.moduleIndex === moduleIndex);
-    items.push(`<button class="nav-item project-item ${activeIndex === projectIndex ? "active" : ""} ${completed.has(projectIndex) ? "completed" : ""}" data-index="${projectIndex}"><span class="status-dot">${completed.has(projectIndex) ? "✓" : "★"}</span><span>${module.project.title.replace("Project ", "Project ")}</span></button>`);
+    const projectLocked = !isUnlocked(projectIndex);
+    const projectStatus = projectLocked ? lockedIcon : completed.has(projectIndex) ? "✓" : "★";
+    const projectLockLabel = projectLocked ? ' aria-label="Locked. Complete previous lessons to unlock."' : "";
+    const projectTitle = projectLocked ? ' title="Complete previous lessons to unlock"' : "";
+    items.push(`<button class="nav-item project-item ${activeIndex === projectIndex ? "active" : ""} ${completed.has(projectIndex) ? "completed" : ""} ${projectLocked ? "locked" : ""}" data-index="${projectIndex}"${projectLocked ? " disabled" : ""}${projectLockLabel}${projectTitle}><span class="status-dot">${projectStatus}</span><span>${module.project.title.replace("Project ", "Project ")}</span></button>`);
     return `<div class="nav-module"><button class="module-toggle" aria-expanded="true">${module.name}</button><div class="module-lessons">${items.join("")}</div></div>`;
   }).join("");
   updateProgress();
+}
+
+function playUnlockCelebration(item) {
+  unlockMessage.textContent = `${item.title} unlocked!`;
+  const particleCount = 64;
+  const burstRadius = Math.min(420, window.innerWidth * 0.4);
+  unlockParticles.replaceChildren(...Array.from({ length: particleCount }, (_, index) => {
+    const particle = document.createElement("span");
+    const angle = (Math.PI * 2 * index) / particleCount;
+    const distance = burstRadius * (0.62 + (index % 4) * 0.13);
+    particle.className = "unlock-particle";
+    particle.style.setProperty("--particle-x", `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty("--particle-y", `${Math.sin(angle) * distance}px`);
+    return particle;
+  }));
+  unlockCelebration.hidden = false;
+  unlockCelebration.classList.remove("unlocking");
+  void unlockCelebration.offsetWidth;
+  unlockCelebration.classList.add("unlocking");
+
+  const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1800 : 4500;
+  return new Promise(resolve => {
+    window.setTimeout(() => {
+      unlockCelebration.classList.remove("unlocking");
+      unlockCelebration.hidden = true;
+      unlockParticles.replaceChildren();
+      resolve();
+    }, duration);
+  });
 }
 
 function escapeHtml(text) {
@@ -333,6 +389,8 @@ function savePracticePassed() {
 
 function renderLesson() {
   const item = lessonItems[activeIndex];
+  const isProjectEditor = item.kind === "project" && projectEditorOpen;
+  document.body.classList.toggle("project-editor-mode", isProjectEditor);
   completeButton.hidden = false;
   localStorage.setItem("markup-html-active", String(activeIndex));
   lessonKicker.textContent = `${item.moduleName} · ${item.kind === "project" ? "Hands-on project" : `Lesson ${item.lessonIndex + 1} of 4`}`;
@@ -383,7 +441,6 @@ function renderLesson() {
     } else {
       completeButton.disabled = false;
     }
-    completeButton.textContent = completed.has(activeIndex) ? "Lesson complete ✓" : "Complete lesson →";
   } else {
     if (projectEditorOpen) {
       lessonContent.innerHTML = `
@@ -392,15 +449,19 @@ function renderLesson() {
           <textarea id="projectCode" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
           <div class="project-editor-actions">
             <button class="secondary-button" id="backToProject" type="button">Back to project</button>
-            <button class="primary-button" id="runProject" type="button">Run</button>
+            <button class="primary-button" id="runProject" type="button">Run and see</button>
           </div>
         </section>
         <section class="project-output" id="projectOutput" aria-label="Project preview" hidden>
-          <h2>Preview</h2>
+          <div class="project-output-heading">
+            <h2>Preview</h2>
+            <button class="secondary-button" id="backToEditor" type="button">Back to editor</button>
+          </div>
           <iframe id="projectPreview" title="${escapeHtml(item.title)} preview" sandbox=""></iframe>
         </section>`;
       const projectCode = lessonContent.querySelector("#projectCode");
       projectCode.value = localStorage.getItem(`markup-html-project-${activeIndex}`) || "";
+      resizePracticeEditor(projectCode);
       completeButton.hidden = true;
     } else {
       lessonContent.innerHTML = `
@@ -413,11 +474,28 @@ function renderLesson() {
       completeButton.hidden = false;
     }
     completeButton.disabled = false;
-    completeButton.textContent = completed.has(activeIndex) ? "Project complete ✓" : "Mark project complete ✓";
   }
 
-  previousButton.textContent = activeIndex === 0 ? "← Home" : "← Previous";
+  previousButton.textContent = "←";
   previousButton.disabled = activeIndex === 0;
+  previousButton.setAttribute(
+    "aria-label",
+    activeIndex === 0 ? "No previous lesson" : "Go to previous lesson"
+  );
+  previousButton.title = activeIndex === 0 ? "No previous lesson" : "Previous";
+  const isComplete = completed.has(activeIndex);
+  previousButton.classList.add("nav-arrow-button");
+  completeButton.classList.add("nav-arrow-button");
+  completeButton.textContent = isComplete ? "✓" : "→";
+  completeButton.setAttribute(
+    "aria-label",
+    isComplete
+      ? `${item.kind === "project" ? "Project" : "Lesson"} complete`
+      : `Complete ${item.kind === "project" ? "project" : "lesson"} and continue`
+  );
+  completeButton.title = isComplete
+    ? `${item.kind === "project" ? "Project" : "Lesson"} complete`
+    : `Complete ${item.kind === "project" ? "project" : "lesson"} and continue`;
   renderNav();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -451,6 +529,7 @@ lessonContent.addEventListener("keydown", event => {
 
 lessonContent.addEventListener("input", event => {
   if (event.target.id !== "projectCode") return;
+  resizePracticeEditor(event.target);
   localStorage.setItem(`markup-html-project-${activeIndex}`, event.target.value);
 });
 
@@ -472,6 +551,13 @@ lessonContent.addEventListener("click", event => {
     const output = lessonContent.querySelector("#projectOutput");
     output.hidden = false;
     lessonContent.querySelector("#projectPreview").srcdoc = source;
+    output.scrollIntoView({ behavior: "smooth", block: "start" });
+    lessonContent.querySelector("#backToEditor").focus({ preventScroll: true });
+    return;
+  }
+  if (event.target.closest("#backToEditor")) {
+    lessonContent.querySelector("#projectCode").focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
 
@@ -508,7 +594,9 @@ function updateProgress() {
 courseNav.addEventListener("click", event => {
   const button = event.target.closest("[data-index]");
   if (button) {
-    activeIndex = Number(button.dataset.index);
+    const targetIndex = Number(button.dataset.index);
+    if (!isUnlocked(targetIndex)) return;
+    activeIndex = targetIndex;
     projectEditorOpen = false;
     renderLesson();
     if (mobileSidebar.matches) setSidebarOpen(false);
@@ -522,15 +610,28 @@ courseNav.addEventListener("click", event => {
   }
 });
 
-completeButton.addEventListener("click", () => {
+completeButton.addEventListener("click", async () => {
+  if (unlockAnimationRunning) return;
   const practiceDraft = localStorage.getItem(`markup-html-practice-draft-${activeIndex}`) || "";
   if (
     practiceChallenges[lessonItems[activeIndex].title]
     && practicePassed.get(activeIndex) !== practiceDraft
   ) return;
+  const nextIndex = activeIndex + 1;
+  const shouldCelebrate = nextIndex < lessonItems.length && !isUnlocked(nextIndex);
   completed.add(activeIndex);
   localStorage.setItem(storageKey, JSON.stringify([...completed]));
-  if (activeIndex < lessonItems.length - 1) activeIndex += 1;
+  if (nextIndex < lessonItems.length && shouldCelebrate) {
+    unlockAnimationRunning = true;
+    completeButton.disabled = true;
+    renderNav();
+    try {
+      await playUnlockCelebration(lessonItems[nextIndex]);
+    } finally {
+      unlockAnimationRunning = false;
+    }
+  }
+  if (nextIndex < lessonItems.length) activeIndex = nextIndex;
   projectEditorOpen = false;
   renderLesson();
 });

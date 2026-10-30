@@ -7,7 +7,6 @@ import {
   getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
-  OAuthProvider,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
@@ -36,7 +35,7 @@ authDialog.innerHTML = `
     <form class="auth-form" id="authForm">
       <label class="auth-field" id="nameField">
         <span>Your name</span>
-        <input id="authName" name="name" type="text" autocomplete="name" required>
+        <input id="authName" name="name" type="text" autocomplete="name" placeholder="John Stewart" required>
       </label>
       <label class="auth-field">
         <span>Email address</span>
@@ -44,7 +43,20 @@ authDialog.innerHTML = `
       </label>
       <label class="auth-field" id="passwordField">
         <span>Password</span>
-        <input id="authPassword" name="password" type="password" autocomplete="new-password" minlength="8" required>
+        <span class="password-input-wrap">
+          <input id="authPassword" name="password" type="password" autocomplete="new-password" aria-describedby="passwordHint" minlength="8" required>
+          <button class="password-visibility" id="passwordVisibility" type="button" aria-label="Show password" aria-pressed="false">
+            <svg class="password-eye" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="password-eye-off" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
+              <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/>
+              <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.2 4.1M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.4 0 2.7-.4 3.8-.9"/>
+            </svg>
+          </button>
+        </span>
+        <span class="auth-field-hint" id="passwordHint">Use at least 8 characters; a longer, unique passphrase is safer. You can use letters, numbers, and symbols, but no particular mix is required. Avoid personal details and passwords you use elsewhere.</span>
       </label>
       <button class="auth-submit" type="submit">Create account</button>
       <button class="auth-link" id="authResetPassword" type="button" hidden>Forgot password?</button>
@@ -59,21 +71,6 @@ authDialog.innerHTML = `
           <path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 5.8 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3c1.6-4.9 6.1-8.5 11.4-8.5Z"/>
         </svg>
         <span>Google</span>
-      </button>
-      <button class="auth-provider" type="button" data-provider="apple">
-        <svg class="provider-mark provider-mark-apple" aria-hidden="true" viewBox="0 0 24 24">
-          <path d="M16.37 12.53c.02 2.14 1.88 2.85 1.9 2.86-.02.05-.3 1.03-.98 2.04-.59.87-1.2 1.73-2.16 1.75-.94.02-1.24-.56-2.32-.56-1.08 0-1.42.54-2.31.58-.93.04-1.64-.94-2.24-1.81-1.22-1.76-2.15-4.97-.9-7.14a3.47 3.47 0 0 1 2.92-1.77c.91-.02 1.77.62 2.33.62.55 0 1.59-.77 2.68-.66.46.02 1.76.19 2.59 1.42-.07.04-1.55.9-1.53 2.67ZM14.61 6.98a3.42 3.42 0 0 0 .78-2.45 3.47 3.47 0 0 0-2.24 1.18 3.23 3.23 0 0 0-.8 2.36 2.88 2.88 0 0 0 2.26-1.09Z"/>
-        </svg>
-        <span>Apple</span>
-      </button>
-      <button class="auth-provider" type="button" data-provider="microsoft">
-        <svg class="provider-mark provider-mark-microsoft" aria-hidden="true" viewBox="0 0 24 24">
-          <path fill="#F25022" d="M2 2h9.5v9.5H2z"/>
-          <path fill="#7FBA00" d="M12.5 2H22v9.5h-9.5z"/>
-          <path fill="#00A4EF" d="M2 12.5h9.5V22H2z"/>
-          <path fill="#FFB900" d="M12.5 12.5H22V22h-9.5z"/>
-        </svg>
-        <span>Microsoft</span>
       </button>
     </div>
     <p class="auth-switch"><span id="authSwitchPrompt">Already have an account?</span> <button id="authSwitchButton" type="button">Log in</button></p>
@@ -92,6 +89,8 @@ const authEmail = authDialog.querySelector("#authEmail");
 const authPassword = authDialog.querySelector("#authPassword");
 const nameField = authDialog.querySelector("#nameField");
 const passwordField = authDialog.querySelector("#passwordField");
+const passwordHint = authDialog.querySelector("#passwordHint");
+const passwordVisibility = authDialog.querySelector("#passwordVisibility");
 const authSubmit = authForm.querySelector(".auth-submit");
 const authGuestContent = authDialog.querySelector("#authGuestContent");
 const authAccount = authDialog.querySelector("#authAccount");
@@ -119,6 +118,12 @@ function setAuthMode(mode) {
   authName.required = isSignup;
   authPassword.minLength = isSignup ? 8 : 0;
   authPassword.autocomplete = isSignup ? "new-password" : "current-password";
+  authPassword.type = "password";
+  passwordVisibility.setAttribute("aria-label", "Show password");
+  passwordVisibility.setAttribute("aria-pressed", "false");
+  authDialog.querySelector(".password-eye").removeAttribute("hidden");
+  authDialog.querySelector(".password-eye-off").setAttribute("hidden", "");
+  passwordHint.hidden = !isSignup;
   authTitle.textContent = isSignup ? "Create an account" : "Welcome back";
   authDescription.textContent = isSignup
     ? "Save your learning progress and pick up where you left off."
@@ -221,6 +226,14 @@ profileButton.addEventListener("click", () => {
 
 authDialog.querySelector(".auth-close").addEventListener("click", () => authDialog.close());
 authSwitch.addEventListener("click", () => setAuthMode(authMode === "signup" ? "login" : "signup"));
+passwordVisibility.addEventListener("click", () => {
+  const isVisible = authPassword.type === "password";
+  authPassword.type = isVisible ? "text" : "password";
+  passwordVisibility.setAttribute("aria-label", isVisible ? "Hide password" : "Show password");
+  passwordVisibility.setAttribute("aria-pressed", String(isVisible));
+  authDialog.querySelector(".password-eye").toggleAttribute("hidden", isVisible);
+  authDialog.querySelector(".password-eye-off").toggleAttribute("hidden", !isVisible);
+});
 
 authForm.addEventListener("submit", event => {
   event.preventDefault();
@@ -251,22 +264,7 @@ resetPasswordButton.addEventListener("click", () => runAuthAction(async () => {
 
 authDialog.querySelectorAll("[data-provider]").forEach(button => {
   button.addEventListener("click", () => runAuthAction(async () => {
-    let provider;
-    switch (button.dataset.provider) {
-      case "google":
-        provider = new GoogleAuthProvider();
-        break;
-      case "apple":
-        provider = new OAuthProvider("apple.com");
-        provider.addScope("email");
-        provider.addScope("name");
-        break;
-      case "microsoft":
-        provider = new OAuthProvider("microsoft.com");
-        break;
-      default:
-        throw new Error("Unsupported sign-in provider.");
-    }
+    const provider = new GoogleAuthProvider();
 
     if (window.matchMedia("(max-width: 820px)").matches) {
       await signInWithRedirect(auth, provider);

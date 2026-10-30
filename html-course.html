@@ -5,15 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A hands-on HTML course with projects and progress tracking.">
   <title>Morning's Courses - HTML Course</title>
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=31">
 </head>
-<body class="dark-theme">
+<body>
   <header class="topbar">
     <button class="menu-button" id="menuButton" aria-label="Toggle course navigation" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <a class="brand" href="index.html" aria-label="Morning's Courses home"><span class="brand-mark">M</span> Morning's Courses</a>
     <div class="topbar-actions">
+      <button class="theme-toggle" type="button" aria-label="Switch to dark theme" title="Switch to dark theme">
+        <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" hidden>
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
+        </svg>
+        <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"></path>
+        </svg>
+      </button>
       <button class="avatar" id="profileButton" type="button" aria-label="Sign up or log in" aria-haspopup="dialog" aria-controls="authDialog">
         <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
           <circle cx="12" cy="8" r="3.5"></circle>
@@ -40,13 +49,28 @@
       <p class="lesson-summary" id="lessonSummary"></p>
       <article id="lessonContent"></article>
       <div class="lesson-footer">
-        <button class="secondary-button" id="previousButton">← Home</button>
-        <button class="primary-button" id="completeButton">Complete lesson →</button>
+        <button class="secondary-button nav-arrow-button" id="previousButton" aria-label="No previous lesson" title="No previous lesson">←</button>
+        <button class="primary-button nav-arrow-button" id="completeButton" aria-label="Complete lesson and continue" title="Complete lesson and continue">→</button>
       </div>
     </div>
   </main>
+  <div class="unlock-celebration" id="unlockCelebration" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <div class="unlock-celebration-content">
+      <div class="unlock-lock" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path class="unlock-lock-shackle" d="M21 28V19a11 11 0 0 1 22 0v9"></path>
+          <rect x="14" y="27" width="36" height="28" rx="6"></rect>
+          <circle cx="32" cy="40" r="3"></circle>
+          <path d="M32 43v5"></path>
+        </svg>
+        <span class="unlock-particles" aria-hidden="true"></span>
+      </div>
+      <p class="unlock-message"></p>
+    </div>
+  </div>
 
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=34"></script>
+  <script src="theme.js?v=2"></script>
   <script type="module" src="auth.js?v=6"></script>
 </body>
 </html>

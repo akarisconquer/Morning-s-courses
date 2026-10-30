@@ -27,7 +27,7 @@ jobs:
       - name: Prepare site files
         run: |
           mkdir _site
-          cp index.html html-course.html styles.css app.js auth.js firebase-config.js _site/
+          cp index.html html-course.html styles.css app.js auth.js firebase-config.js theme.js _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

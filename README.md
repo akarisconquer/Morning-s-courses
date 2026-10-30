@@ -1,8 +1,12 @@
 # HTML Fundamentals Course
 
-A responsive, framework-free HTML course with 20 lessons and five real projects. The course is organized into JavaScript data structures in `app.js`. Lesson progress, practice drafts, passed code checks, and project drafts are saved in browser localStorage. Each project includes a blank editor and a sandboxed HTML preview.
+A responsive, framework-free HTML course with 20 lessons and five real projects. The course is organized into JavaScript data structures in `app.js`. Lesson progress, practice drafts, passed code checks, and project drafts are saved in browser localStorage. Each project opens a full-page code editor with a sandboxed HTML preview.
 
-Authentication uses Firebase Authentication for email/password, Google, Apple, and Microsoft sign-in. The public Firebase web-app configuration is kept in `firebase-config.js`; OAuth client secrets must only be entered in Firebase and provider dashboards, never in the website code.
+Lessons and projects unlock in order: finish each item to open the next one. Locked sidebar items show a lock icon and cannot be selected. A first-time unlock triggers a large celebration over the course content; reduced-motion settings keep it visible without the moving effects.
+
+The course starts in light mode. Use the sun/moon button in the header to switch themes; your selected theme is saved in browser localStorage and shared across both pages.
+
+Authentication uses Firebase Authentication for email/password and Google sign-in. The public Firebase web-app configuration is kept in `firebase-config.js`; OAuth client secrets must only be entered in Firebase and provider dashboards, never in the website code.
 
 ## Run locally
 
@@ -20,12 +24,9 @@ The sign-in UI is wired to Firebase Authentication, but real accounts work only 
 
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/) and register a **Web app**.
 2. Copy the web app's `apiKey`, `authDomain`, `projectId`, and `appId` into `firebase-config.js`. This browser configuration is public by design; do not put service-account keys, OAuth client secrets, or private keys in this file.
-3. In **Authentication → Sign-in method**, enable **Email/Password**, **Google**, **Apple**, and **Microsoft**.
+3. In **Authentication → Sign-in method**, enable **Email/Password** and **Google**.
 4. In **Authentication → Settings → Authorized domains**, add `akarisconquer.github.io`, `localhost`, and `127.0.0.1` (and any custom domain you use).
-5. Configure the provider credentials in Firebase:
-   - **Google:** enable the provider in Firebase and use its configured OAuth client.
-   - **Apple:** configure Sign in with Apple in the Apple Developer portal, then enter the Service ID, Team ID, key ID, and private key in Firebase. Apple requires an Apple Developer Program membership. Register Firebase's OAuth handler URL shown in Firebase as Apple's Return URL.
-   - **Microsoft:** register an app in Microsoft Entra ID, then enter its client ID and client secret in Firebase. Add the Firebase OAuth handler URL shown in Firebase as the redirect URI in Microsoft Entra.
+5. Enable Google sign-in in Firebase and use its configured OAuth client.
 6. Publish through GitHub Pages. Test locally using `http://localhost:4173` rather than opening the HTML files as `file://`; OAuth requires an authorized web origin.
 
 Firebase persists the sign-in session in the browser. Course progress remains in localStorage and is not yet synced between devices.
